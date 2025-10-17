@@ -1,3 +1,3 @@
 # captcha-solver-...
 
-Create a captcha solver that handles ?url=https://.../image.png. Default to attached sample.
+Improve the captcha solver. Add OCR logic and automatically fetch the image from ?url=... if provided.
