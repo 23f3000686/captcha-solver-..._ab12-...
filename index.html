@@ -20,56 +20,131 @@
             margin: 0 auto;
             background: white;
             padding: 20px;
-            border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
         }
-        img {
-            max-width: 100%;
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
             display: block;
-            margin: 0 auto;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="url"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
         button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #28a745;
-            color: white;
+            width: 100%;
+            padding: 10px;
+            background-color: #5cb85c;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
+            color: white;
+            font-size: 16px;
             cursor: pointer;
-            display: block;
-            margin: 20px auto;
         }
         button:hover {
-            background-color: #218838;
+            background-color: #4cae4c;
         }
-        #captchaImage {
-            display: none;
-            margin: 20px auto;
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        img {
+            display: block;
+            max-width: 100%;
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Captcha Solver</h1>
-        <p>Enter the URL of the captcha image:</p>
-        <input type="text" id="captchaUrl" placeholder="Enter URL">
-        <button id="loadCaptcha">Load Captcha</button>
-        <img id="captchaImage" src="" alt="Captcha Image">
-        <button id="solveCaptcha" style="display: none;">Solve Captcha</button>
+
+<div class="container">
+    <h1>Captcha Solver</h1>
+    <div class="input-group">
+        <label for="captchaUrl">Enter Captcha Image URL:</label>
+        <input type="url" id="captchaUrl" placeholder="http://example.com/captcha.jpg">
     </div>
+    <div class="input-group">
+        <label for="captchaText">Or Enter Captcha Text Manually:</label>
+        <input type="text" id="captchaText" placeholder="Enter captcha text here...">
+    </div>
+    <button id="solveBtn">Solve Captcha</button>
 
-    <script>
-        document.getElementById('loadCaptcha').addEventListener('click', function () {
-            const captchaUrl = document.getElementById('captchaUrl').value || 'image.png';
-            const captchaImg = document.getElementById('captchaImage');
-            captchaImg.src = captchaUrl;
-            captchaImg.style.display = 'block';
-            document.getElementById('solveCaptcha').style.display = 'block';
-        });
+    <img id="captchaImage" src="" alt="" style="display: none;">
+    <div id="result"></div>
+</div>
 
-        document.getElementById('solveCaptcha').addEventListener('click', function () {
-            alert('Captcha solving is a placeholder feature. Actual implementation required.');
+<script>
+    document.getElementById('solveBtn').addEventListener('click', function() {
+        const url = document.getElementById('captchaUrl').value;
+        const captchaText = document.getElementById('captchaText').value;
+
+        if (url) {
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.blob();
+                })
+                .then(blob => {
+                    const imgUrl = URL.createObjectURL(blob);
+                    document.getElementById('captchaImage').src = imgUrl;
+                    document.getElementById('captchaImage').style.display = 'block';
+                    return extractTextFromImage(imgUrl);
+                })
+                .then(text => {
+                    document.getElementById('result').innerText = `Solved Captcha: ${text}`;
+                })
+                .catch(err => {
+                    document.getElementById('result').innerText = `Error: ${err.message}`;
+                });
+        } else if (captchaText) {
+            document.getElementById('result').innerText = `Solved Captcha: ${captchaText}`;
+        } else {
+            document.getElementById('result').innerText = 'Please provide a URL or enter text.';
+        }
+    });
+
+    function extractTextFromImage(imageUrl) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const dataUrl = canvas.toDataURL('image/png');
+
+                const worker = Tesseract.createWorker();
+                worker.load()
+                    .then(() => worker.loadLanguage('eng'))
+                    .then(() => worker.initialize('eng'))
+                    .then(() => worker.setParameters({
+                        tessedit_char_whitelist: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                    }))
+                    .then(() => worker.recognize(dataUrl))
+                    .then(({ data: { text } }) => {
+                        worker.terminate();
+                        resolve(text.trim());
+                    })
+                    .catch(err => {
+                        worker.terminate();
+                        reject(err);
+                    });
+            };
+            img.onerror = reject;
+            img.src = imageUrl;
         });
-    </script>
+    }
+</script>
+<script src="https://cdn.rawgit.com/naptha/tesseract.js/0.2.0/dist/tesseract.min.js"></script>
 </body>
 </html>
