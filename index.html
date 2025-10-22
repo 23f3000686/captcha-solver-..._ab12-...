@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captcha Solver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        #captchaImage {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #d44;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 250px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>Captcha Solver</h1>
+    <img id="captchaImage" src="https://example.com/image.png" alt="Captcha Image">
+    <div>
+        <input type="text" id="captchaInput" placeholder="Enter Captcha">
+        <button onclick="solveCaptcha()">Submit</button>
+    </div>
+    <div id="result"></div>
+
+    <script>
+        function solveCaptcha() {
+            var input = document.getElementById('captchaInput').value;
+            var resultDiv = document.getElementById('result');
+
+            // Simulating captcha solving logic
+            if (input.trim() === "1234") { // Replace "1234" with the expected captcha answer
+                resultDiv.innerHTML = "Captcha Solved Successfully!";
+                resultDiv.style.color = "green";
+            } else {
+                resultDiv.innerHTML = "Invalid Captcha. Please try again.";
+                resultDiv.style.color = "red";
+            }
+        }
+    </script>
+</body>
+</html>
